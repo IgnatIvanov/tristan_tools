@@ -1,0 +1,8 @@
+pandas
+tqdm
+sqlalchemy
+psycopg2-binary
+numpy
+openpyxl
+requests
+apscheduler
