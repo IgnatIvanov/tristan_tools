@@ -6,6 +6,7 @@ from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 # 
 from services.arabica.get_dolphin_metrics import get_dolphin_metrics
+from services.reports.dima_reports_20260920 import main as create_dima_report_20260920
 
 def get_total_report(
         df: pd.DataFrame,
@@ -291,6 +292,9 @@ def main(
     # save_name = str(p['start']) + '.xlsx'
     save_name = 'Общее по дням.xlsx'
     total_by_date.to_excel(os.path.join(save_path, save_name))
+
+    # Создание отдельных отчётов
+    create_dima_report_20260920()
 
 if __name__ == '__main__':
     main()
