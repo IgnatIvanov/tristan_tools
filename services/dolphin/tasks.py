@@ -21,8 +21,11 @@ def set_date_to_update(
 
 def get_dates_to_update() -> list:
     # Получение списка дат для обновления
-    with open(plan_path, 'r', encoding='utf-8') as f:
-        return json.loads(f.read())
+    if not os.path.exists(plan_path): 
+        return []
+    else:
+        with open(plan_path, 'r', encoding='utf-8') as f:
+            return json.loads(f.read())
 
 def rewrite_dates_to_update(plan: list):
     # Перезапись списка дат для онбовления полностью

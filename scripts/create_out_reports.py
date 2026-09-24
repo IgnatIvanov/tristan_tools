@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 # 
 from services.arabica.get_dolphin_metrics import get_dolphin_metrics
 from services.reports.dima_reports_20260920 import main as create_dima_report_20260920
+from services.reports.nikita_total_report_1 import prepare_report as create_nikita_total_report_1
 
 def get_total_report(
         df: pd.DataFrame,
@@ -295,6 +296,7 @@ def main(
 
     # Создание отдельных отчётов
     create_dima_report_20260920()
+    create_nikita_total_report_1()
 
 if __name__ == '__main__':
     main()
