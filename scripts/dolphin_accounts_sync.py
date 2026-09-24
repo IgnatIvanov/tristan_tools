@@ -9,7 +9,7 @@ from services.dolphin.access.get_token import get_access_token
 # 
 settings = Settings()
 
-def run_fb_accounts_update_data():
+def run_dolphin_accounts_fb_sync():
     api_token = get_access_token()
     headers = {
         'Authorization': f'Bearer {api_token}',
@@ -19,23 +19,9 @@ def run_fb_accounts_update_data():
     params = {
         'perPage': 100,
         'page': 1,
-        # 'from_date': '2026-09-20',
-        # 'to_date': '2026-09-22',
         'currency': 'USD',
-        # Передаем массив колонок, которые нужно сагрегировать
-        # 'aggregateColumns[]': [
-        #     'adset_targeting',
-        #     'impressions',
-        #     'link_click',
-        #     'link_click_cpa',
-        #     'cpm',
-        #     'spend',
-        #     'link_click_cr',
-        #     'fb_mobile_add_payment_info'
-        # ],
         'showArchivedAds': 0,
         'with_trashed': 1,
-        # 'accountStatus[]': 'ACTIVE',
         'showArchivedAdAccount': 0,
         'showArchivedAdsets': 0
     }
@@ -58,18 +44,11 @@ def run_fb_accounts_update_data():
     # 
     url = f'https://{settings.BASE_URL}/api/v1/fb-accounts/sync'
     payload = json.dumps({
-        # "accountsIds": [
-        #     "{{account_id}}"
-        # ]
         "accountsIds": acc_ids
     })
     response = requests.request("POST", url, headers=headers, data=payload)
-    # data = json.loads(response.text)
-    # with open('responce.json', 'w', encoding='utf-8') as f:
-    #     f.write(json.dumps(data, indent=4, ensure_ascii=False))
 
 
 
 if __name__ == '__main__':
-    run_fb_accounts_update_data()
-    
+    run_dolphin_accounts_fb_sync()

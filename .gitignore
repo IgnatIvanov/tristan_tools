@@ -1,5 +1,6 @@
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
+test.ipynb
 .vscode/
 
 *.log
@@ -16,3 +17,4 @@ documents_out
 notebooks
 tasks.md
 services/dolphin/access/integration_auth_key.txt
+services/arabica/access/db.json
