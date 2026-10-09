@@ -14,6 +14,7 @@ import shutil
 from pathlib import Path
 # 
 from services.arabica.get_dolphin_metrics import get_dolphin_metrics
+from services.arabica.get_combined_metrics import get_combined_metrics_dima
 
 
 
@@ -210,6 +211,43 @@ def get_total_report_by_date(
         # 'regs', 'reg_cost',
         'purchase', 'purchase_cost'
     ]]
+    total_report = total_report.sort_values(by=group_by_cols)
+
+    # 4. Расчет строки ИТОГО
+    # Суммируем только складываемые базовые метрики по всему датафрейму
+    total_spend = total_report['spend'].sum()
+    total_subs = total_report['subs'].sum()
+    total_contacts = total_report['contacts'].sum()
+    total_purchase = total_report['purchase'].sum()
+
+    # Считаем производные метрики глобально для всей таблицы
+    total_sub_cost = round(total_spend / total_subs, 2) if total_subs > 0 else 0.0
+    total_contact_cost = round(total_spend / total_contacts, 2) if total_contacts > 0 else 0.0
+    total_purchase_cost = round(total_spend / total_purchase, 2) if total_purchase > 0 else 0.0
+
+    # Создаем словарь для строки итогов
+    summary_row = {}
+    
+    # В первую колонку группировки пишем "Итого", остальные оставляем пустыми
+    for i, col in enumerate(group_by_cols):
+        summary_row[col] = "Итого" if i == 0 else ""
+        
+    # Заполняем просчитанные финальные метрики
+    summary_row.update({
+        'spend': round(total_spend, 2),
+        'subs': total_subs,
+        'sub_cost': total_sub_cost,
+        'contacts': total_contacts,
+        'contact_cost': total_contact_cost,
+        'purchase': total_purchase,
+        'purchase_cost': total_purchase_cost
+    })
+
+    # Превращаем строку в DataFrame и объединяем с основным отчетом
+    summary_df = pd.DataFrame([summary_row])
+    total_report = pd.concat([total_report, summary_df], ignore_index=True)
+
+
     return total_report
 
 def input_subtable_data(
@@ -266,7 +304,7 @@ def prepare_total_report(
     example_path = os.path.join('examples', 'dima_total_20260920.xlsx')
     # 
     # report_dir = os.path.join(parent_dir, 'google_drive_out', 'dolphin_1', 'Дима')
-    report_dir = os.path.join('documents_out', 'google_drive_out', 'dolphin_1', 'Дима')
+    report_dir = os.path.join('documents_out', 'google_drive_out', 'dolphin_1', 'Дима', f'{start_date.year}.{start_date.month:02d}')
     os.makedirs(report_dir, exist_ok=True)
     report_path = os.path.join(report_dir, report_file_name)
     shutil.copy(example_path, report_path)
@@ -294,7 +332,7 @@ def prepare_total_report(
         end_date,
         group_by_cols=group_by_cols
     )
-    total_date_report = total_date_report.sort_values(by=group_by_cols)
+    # total_date_report = total_date_report.sort_values(by=group_by_cols)
     # total_date_report['metrics_date'] = total_date_report['metrics_date'].apply(lambda x: x.date())
 
     start_col = 10
@@ -322,7 +360,7 @@ def prepare_total_report(
             end_date,
             group_by_cols=group_by_cols
         )
-        total_date_report = total_date_report.sort_values(by=group_by_cols)
+        # total_date_report = total_date_report.sort_values(by=group_by_cols)
         # total_date_report['metrics_date'] = total_date_report['metrics_date'].apply(lambda x: x.date())    
         # 
         input_subtable_data(
@@ -349,7 +387,7 @@ def prepare_total_report(
         end_date,
         group_by_cols=group_by_cols
     )
-    total_date_report = total_date_report.sort_values(by=group_by_cols)
+    # total_date_report = total_date_report.sort_values(by=group_by_cols)
     # total_date_report['art_name'] = total_date_report['art_name'].apply(lambda x: x.date())
 
     # start_col = 10
@@ -377,7 +415,7 @@ def prepare_total_report(
             end_date,
             group_by_cols=group_by_cols
         )
-        total_date_report = total_date_report.sort_values(by=group_by_cols)
+        # total_date_report = total_date_report.sort_values(by=group_by_cols)
         # total_date_report['art_name'] = total_date_report['art_name'].apply(lambda x: x.date())    
         # 
         input_subtable_data(
@@ -412,7 +450,7 @@ def prepare_buyer_report(
     example_path = os.path.join('examples', 'dima_buyer_20260920.xlsx')
     # 
     # report_dir = os.path.join(parent_dir, 'google_drive_out', 'dolphin_1', 'Дима')
-    report_dir = os.path.join('documents_out', 'google_drive_out', 'dolphin_1', 'Дима')
+    report_dir = os.path.join('documents_out', 'google_drive_out', 'dolphin_1', 'Дима', f'{start_date.year}.{start_date.month:02d}')
     os.makedirs(report_dir, exist_ok=True)
     report_path = os.path.join(report_dir, report_file_name)
     shutil.copy(example_path, report_path)
@@ -443,7 +481,7 @@ def prepare_buyer_report(
         end_date,
         group_by_cols=group_by_cols
     )
-    total_date_report = total_date_report.sort_values(by=group_by_cols)
+    # total_date_report = total_date_report.sort_values(by=group_by_cols)
     # total_date_report['metrics_date'] = total_date_report['metrics_date'].apply(lambda x: x.date())
 
     start_col = 11
@@ -471,7 +509,7 @@ def prepare_buyer_report(
             end_date,
             group_by_cols=group_by_cols
         )
-        total_date_report = total_date_report.sort_values(by=group_by_cols)
+        # total_date_report = total_date_report.sort_values(by=group_by_cols)
         # total_date_report['metrics_date'] = total_date_report['metrics_date'].apply(lambda x: x.date())    
         # 
         input_subtable_data(
@@ -498,7 +536,7 @@ def prepare_buyer_report(
         end_date,
         group_by_cols=group_by_cols
     )
-    total_date_report = total_date_report.sort_values(by=group_by_cols)
+    # total_date_report = total_date_report.sort_values(by=group_by_cols)
     # total_date_report['art_name'] = total_date_report['art_name'].apply(lambda x: x.date())
 
     # start_col = 10
@@ -526,7 +564,7 @@ def prepare_buyer_report(
             end_date,
             group_by_cols=group_by_cols
         )
-        total_date_report = total_date_report.sort_values(by=group_by_cols)
+        # total_date_report = total_date_report.sort_values(by=group_by_cols)
         # total_date_report['art_name'] = total_date_report['art_name'].apply(lambda x: x.date())    
         # 
         input_subtable_data(
@@ -555,18 +593,27 @@ def prepare_buyer_report(
 
 
 def main():
-    df = get_dolphin_metrics()
+    df = get_combined_metrics_dima()
     # 
+    df.rename(
+        inplace=True,
+        columns={
+            'sub_count': 'subs',
+            'dialog_count': 'contacts',
+            'ftd_count': 'purchase',
+            'buyer_name': 'buyer',
+        }
+    )
 
-    def fill_buyer(x: pd.Series):
-        if type(x.url_params) == float: return 'Plex1'
-        if 'buyer_name' not in x.url_params: return 'Plex1'
-        params = str(x.url_params).split('&')
-        for p in params:
-            if 'buyer_name' in p:
-                return p.replace('buyer_name=', '')
+    # def fill_buyer(x: pd.Series):
+    #     if type(x.url_params) == float: return 'Unknown'
+    #     if 'buyer_name' not in x.url_params: return 'Plex1'
+    #     params = str(x.url_params).split('&')
+    #     for p in params:
+    #         if 'buyer_name' in p:
+    #             return p.replace('buyer_name=', '')
 
-    df['buyer'] = df.apply(fill_buyer, axis=1)
+    # df['buyer'] = df.apply(fill_buyer, axis=1)
 
 
 

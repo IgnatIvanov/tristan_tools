@@ -4,6 +4,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # 
 from scripts.dolphin_accounts_sync import run_dolphin_accounts_fb_sync
 from scripts.dolphin_load_new_metrics import dolphin_load_new_metrics
+from scripts.kosher_load_data import main as get_new_kosher_data
+from services.kosher.get_events import main as get_kosher_subs_events
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
@@ -25,6 +27,22 @@ if __name__ == "__main__":
         hour=12, 
         minute=0,
         id='dolphin_load_new_metrics'
+    )
+    # Обновляем данные с кошера каждые 4 часа, выгрузка чатов
+    scheduler.add_job(
+        get_new_kosher_data,
+        'cron', 
+        hour='*/4', 
+        minute=0,
+        id='get_new_kosher_data'
+    )
+    # выгрузка событий подписки и отписки с кошера
+    scheduler.add_job(
+        get_kosher_subs_events,
+        'cron', 
+        hour=11, 
+        minute=0,
+        id='get_kosher_subs_events'
     )
     scheduler.start()
     

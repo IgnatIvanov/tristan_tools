@@ -1,6 +1,7 @@
 import psycopg2
 import pandas as pd
 from datetime import datetime as dt
+from psycopg2.extras import RealDictCursor, Json
 # 
 from services.arabica.database import get_db_credentials
 
@@ -21,8 +22,8 @@ def save_dolphin_metrics_to_ara(ads: list[dict]):
         INSERT INTO dolphin_metrics (metrics_date, ad_id, ad_name, adset_id, adset_name, cam_id,
         cam_name, cab_id, cab_name, geo_targeting, art_name, tier,
         impressions, spend, clicks, subs, contacts, regs,
-        purchase, link, url_params, created_at) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        purchase, link, url_params, created_at, buyer_name, creo_json) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (metrics_date, cam_id, adset_id, ad_id) 
         DO UPDATE SET 
             ad_name = EXCLUDED.ad_name,
@@ -41,17 +42,22 @@ def save_dolphin_metrics_to_ara(ads: list[dict]):
             regs = EXCLUDED.regs,
             purchase = EXCLUDED.purchase,
             link = EXCLUDED.link,
-            created_at = EXCLUDED.created_at;
+            created_at = EXCLUDED.created_at,
+            buyer_name = EXCLUDED.buyer_name,
+            creo_json = EXCLUDED.creo_json;
     """
     df = pd.DataFrame(ads)
     df['created_at'] = dt.now()
     df = df[['metrics_date', 'ad_id', 'ad_name', 'adset_id', 'adset_name', 'cam_id',
         'cam_name', 'cab_id', 'cab_name', 'geo_targeting', 'art_name', 'tier',
         'impressions', 'spend', 'clicks', 'subs', 'contacts', 'regs',
-        'purchase', 'link', 'url_params', 'created_at']]
+        'purchase', 'link', 'url_params', 'created_at', 'buyer_name', 'creative']]
     df['geo_targeting'] = df['geo_targeting'].astype(str)    
     _filter = ((df['spend'] != 0) | (df['clicks'] != 0) | (df['subs'] != 0) | (df['contacts'] != 0) | (df['regs'] != 0) | (df['purchase'] != 0))
     df = df[_filter]
+    # 
+    df['creative'] = df['creative'].apply(Json)
+    # 
     try:
         records_to_insert = [tuple(x) for x in df.replace({pd.NA: None, float('nan'): None}).to_numpy()]
         cursor.executemany(insert_query, records_to_insert)

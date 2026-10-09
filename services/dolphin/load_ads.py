@@ -89,8 +89,6 @@ def load_ads(
                 targeting = adset.get('targeting')
                 countries = targeting.get('included_countries')
                 geo_targeting = tuple([el['country_code'] for el in countries])
-                art_name = get_art_name(ad_name)
-                tier = get_tier(ad_name)
                 #                 
                 stats = ad.get('stats')
                 impressions = stats.get('impressions')
@@ -110,7 +108,13 @@ def load_ads(
                         link = spec.get('link')
                         if link is None: link = ''
                     else: link = 'object_story_spec is None'
-                else: link = 'creative is None'
+                else: 
+                    link = 'creative is None'
+                    creative = {}
+                #                 
+                art_name = get_art_name(url_params)
+                tier = get_tier(url_params)
+                buyer_name = get_buyer_name(url_params)
                 # link = .get('object_story_spec').get('link')
                 # 
                 ads.append({
@@ -135,6 +139,8 @@ def load_ads(
                     'purchase': purchase,
                     'link': link,
                     'url_params': url_params,
+                    'buyer_name': buyer_name,
+                    'creative': creative,
                 })
                 # save_metrics()
 

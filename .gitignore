@@ -8,6 +8,7 @@ script_log.txt
 *.sqlite
 
 **/__pycache__/
+**/temp_***
 *.py[cod]
 *$py.class
 
@@ -19,4 +20,10 @@ tasks.md
 services/dolphin/access/integration_auth_key.txt
 services/arabica/access/db.json
 services/google/access/
+services/kosher/chats/
+services/kosher/uc_kosher_profile/
 
+services/ai_usage/access/openai_api_key.txt
+services/kosher/chats_to_load.json
+services/kosher/last_load_date.txt
+services/kosher/access/user_auth_data.json

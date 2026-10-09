@@ -17,7 +17,7 @@ from openpyxl.cell import MergedCell
 import copy
 from openpyxl.cell.cell import Cell
 # 
-from services.arabica.get_combined_metrics import get_combined_metrics
+from services.arabica.get_combined_metrics import get_combined_metrics_by_date
 
 
 def copy_cell_range(ws, start_row, start_col, end_row, end_col, dest_row, dest_col):
@@ -97,7 +97,7 @@ def copy_cell_range(ws, start_row, start_col, end_row, end_col, dest_row, dest_c
 
 
 def prepare_report():
-    df = get_combined_metrics()
+    df = get_combined_metrics_by_date()
     # 
     df.rename(
         inplace=True,
@@ -114,6 +114,8 @@ def prepare_report():
         # 'regs': 'sum',
         'ftd_count': 'sum',
         'ftd_revenue': 'sum',
+        'dep_count': 'sum',  # колич всех депозитов
+        'sum_revenue': 'sum',  # сумма всех депозитов
     })
     # total_report['click_cost'] = (total_report['spend'] / total_report['clicks']).replace([np.inf, -np.inf], np.nan).round(2).fillna(0)
     report['sub_cost'] = (report['spend'] / report['sub_count']).round(2).replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -127,29 +129,38 @@ def prepare_report():
     report['spend'] = report['spend'].round(2)
     report['interval_date'] = report['interval_date'].apply(lambda x: x.date())
     report['date_2'] = report['interval_date']
+    report['redep_count'] = report['dep_count'] - report['ftd_count']
+    report['redep_sum'] = report['sum_revenue'] - report['ftd_revenue']
+    report['avg_dep'] = report.apply(lambda x: x['sum_revenue']/x['dep_count'] if x['dep_count'] > 0 else 0, axis = 1)
+    report['ftd_count_2'] = report['ftd_count']
     report['sends'] = ''
     report['spend_farm'] = ''
-    report['sl'] = ''
-    report['cpsl'] = ''
-    report['a_comm'] = ''
+    # report['sl'] = ''
+    # report['cpsl'] = ''
+    # report['a_comm'] = ''
     report = report[[
-        'interval_date',
-        'sends',
-        'spend',
-        'spend_farm',
-        'sub_count',
-        'sub_cost',
-        'decline_sub_count',
-        'dialog_count',
-        'dialog_cost',
-        'sl',
-        'cpsl',
-        'ftd_count',
-        'ftd_cost',
-        'cr_dialog_to_fd',
-        'date_2',
-        'a_comm',
-        'ftd_revenue'
+        'interval_date',  #1
+        'sends',  #2
+        'spend',  #3
+        'spend_farm',  #4
+        'sub_count',  #5
+        'sub_cost',  #6
+        'decline_sub_count',  #7
+        'dialog_count',  #8
+        'dialog_cost',  #9
+        # 'sl',
+        # 'cpsl',
+        'ftd_count',  #10
+        'ftd_cost',  #11
+        'cr_dialog_to_fd',  #12
+        'date_2',  #13
+        'ftd_count_2',  #14
+        'ftd_revenue',  #15
+        'redep_count',  #16
+        'redep_sum',  #17
+        'avg_dep',  #18
+        # 'a_comm',
+        # 'ftd_revenue'
     ]]
     report.sort_values(by='interval_date', inplace=True)
     # 
@@ -206,7 +217,7 @@ def prepare_report():
     prev_date_month = -1
     header_start_col = 1
     header_start_row = 2
-    header_end_col = 19
+    header_end_col = 18
     header_end_row = 2
     current_row = 2
     current_col = 1
@@ -288,11 +299,28 @@ def prepare_report():
             if c_idx == 0:
                 columns_sums[c_idx] = 'Total'
                 continue
-            if c_idx == 13:  ## Расчёт CR
+            if c_idx == 5: # Расчёт CPS
+                if not columns_sums[4]: columns_sums[c_idx] = 0
+                elif columns_sums[4] == 0: columns_sums[c_idx] = 0
+                else: columns_sums[c_idx] = round(columns_sums[2] / columns_sums[4], 4)
+            if c_idx == 8: # Расчёт CPConv
+                if not columns_sums[7]: columns_sums[c_idx] = 0
+                elif columns_sums[7] == 0: columns_sums[c_idx] = 0
+                else: columns_sums[c_idx] = round(columns_sums[2] / columns_sums[7], 4)
+            if c_idx == 10: # Расчёт CPFD
+                if not columns_sums[9]: columns_sums[c_idx] = 0
+                elif columns_sums[9] == 0: columns_sums[c_idx] = 0
+                else: columns_sums[c_idx] = round(columns_sums[2] / columns_sums[9], 4)
+            if c_idx == 11:  ## Расчёт CR
                 if not columns_sums[8]: columns_sums[c_idx] = 0
-                else: columns_sums[c_idx] = round(columns_sums[11] / columns_sums[7], 4)
+                else: columns_sums[c_idx] = round(columns_sums[9] / columns_sums[7], 4)
                 continue
-            if (c_idx == 14) or (type(value) == str):
+            if c_idx == 17:  # Подитог, R, total avg dep
+                value = columns_sums[16] + columns_sums[14]
+                n_count = columns_sums[15] + columns_sums[13]
+                columns_sums[c_idx] = round(value/n_count, 2) if n_count > 0 else 0
+                continue
+            if (c_idx == 12) or (type(value) == str):
                 columns_sums[c_idx] = ''
                 continue
             columns_sums[c_idx] += value
