@@ -6,6 +6,7 @@ from scripts.dolphin_accounts_sync import run_dolphin_accounts_fb_sync
 from scripts.dolphin_load_new_metrics import dolphin_load_new_metrics
 from scripts.kosher_load_data import main as get_new_kosher_data
 from services.kosher.get_events import main as get_kosher_subs_events
+from services.creative.today_run import today_on_air
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
@@ -43,6 +44,14 @@ if __name__ == "__main__":
         hour=11, 
         minute=0,
         id='get_kosher_subs_events'
+    )
+    # Выгрузка крео в работе и отправка отчётов в тг
+    scheduler.add_job(
+        today_on_air, 
+        'cron', 
+        hour=13, 
+        minute=0,
+        id='today_on_air'
     )
     scheduler.start()
     

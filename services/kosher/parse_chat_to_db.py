@@ -3,6 +3,7 @@ import ast
 from tqdm import tqdm
 import json
 import pandas as pd
+from datetime import timedelta, datetime as dt
 import psycopg2
 from psycopg2.extras import register_default_jsonb
 # 
@@ -172,6 +173,8 @@ def parse_chat_to_db(
        'campaign_id', 'adset_id', 'ad_id', 'placement', 'site_source_name',
        'country_code', 'manager', 'manager_name', 'manager_from_messages',
        'revenue', 'currency', 'type', 'created_at']]
+    events_df['created_at'] = pd.to_datetime(events_df['created_at'])
+    events_df['created_at'] = events_df['created_at'].apply(lambda x: x+timedelta(hours=3))
     try:
         # 4. Преобразуем строки DataFrame в список кортежей и отправляем пачкой
         # to_numpy() преобразует данные в удобный для psycopg2 формат строк/колонок

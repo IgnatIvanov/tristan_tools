@@ -22,6 +22,7 @@ from services.kosher.tasks import rewrite_chats_to_load
 from scripts.create_out_reports import main as create_reports
 from services.google.send import main as send_reports_to_gdrive
 from services.kosher.parse_chat_to_db import parse_chat_to_db
+from services.creative.today_run import today_on_air
 # 
 uc_kosher_profile_path = os.path.join(os.getcwd(), 'services', 'kosher', 'uc_kosher_profile')
 chats_dir = os.path.join(os.getcwd(), 'services', 'kosher', 'chats')

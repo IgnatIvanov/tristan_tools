@@ -27,3 +27,4 @@ services/ai_usage/access/openai_api_key.txt
 services/kosher/chats_to_load.json
 services/kosher/last_load_date.txt
 services/kosher/access/user_auth_data.json
+services/creative/access/bot_token.txt

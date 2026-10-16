@@ -22,15 +22,19 @@ def get_combined_metrics_dima() -> pd.DataFrame:
     # Метрики объединяются только по дате
     engine = get_engine()
     df = pd.read_sql('v_dima_dolphin_kosher_combined', con=engine)
+    # TODO: Изменить заполнение данных
+    # Сначала заполнять пустые ид "Нет объявления"
+    # Затем для этих объявлений заполнять пустые tier, art_name и buyer_name тоже "Нет объявления"
+    # Затем эти же поля заполнять "Не указан"
     df.fillna(
         inplace=True,
         value={
             'cam_id': 'Нет объявления',
             'adset_id': 'Нет объявления',
             'ad_id': 'Нет объявления',
-            'art_name': 'Нет объявления',
-            'tier': 'Нет объявления',
-            'buyer_name': 'Нет объявления',
+            'art_name': 'Не указан крео',
+            'tier': 'Не указан тир гео',
+            'buyer_name': 'Не указан байер',
             'impressions': 0,
             'spend': 0,
             'click': 0,

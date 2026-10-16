@@ -5,18 +5,25 @@ import random
 import requests
 import psycopg2
 import pandas as pd
+from tqdm import tqdm
 from time import sleep
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 
 from services.arabica.database import get_db_credentials
 from scripts.kosher_load_data import get_kosher_auth_data
 
 temp_save_path = os.path.join(os.getcwd(), 'services', 'kosher', 'temp_subs_and_events')
 
-def get_kosher_subs_events(
+def load_kosher_clients(
         request_headers,
         session_cookies
 ):
+    """Выгрузка данных о клиентах из Кошера с информацией об их конверсиях
+
+    Args:
+        request_headers (_type_): _description_
+        session_cookies (_type_): _description_
+    """    
     # временные файлы храним только за предыдущую выгрузку
     if os.path.exists(temp_save_path):
         shutil.rmtree(temp_save_path)
@@ -36,10 +43,14 @@ def get_kosher_subs_events(
             f.write(json.dumps(data, indent=4, ensure_ascii=False))
         if data['pagination']['last_page'] == current_page: break
         current_page += 1
+
+def get_kosher_subs_events():
     # 
     # извлекаем события
     
-    for file_name in os.listdir(temp_save_path):
+    # Обработка файлов клиентов кошер
+    print('Обработка файлов клиентов кошер')
+    for file_name in tqdm(os.listdir(temp_save_path)):
         items = []
         
         file_path = os.path.join(temp_save_path, file_name)
@@ -68,16 +79,20 @@ def get_kosher_subs_events(
             
             # 
             # Добавление подписки
+            # Время указано в часовом поясе +0
+            # Для совпадения отображения с сайтом переводим всё на +3
             event_plus = event.copy()
             event_plus['type'] = 'subscription'
-            event_plus['created_at'] = dt.fromisoformat(el['joined_at'])
+            event_plus['created_at'] = dt.fromisoformat(el['joined_at']) + timedelta(hours=3)
             items.append(event_plus)
             # 
             # Добавление отмены подписки
+            # Время указано в часовом поясе +0
+            # Для совпадения отображения с сайтом переводим всё на +3
             if el['unsubscribed_at'] is not None:
                 event_plus = event.copy()
                 event_plus['type'] = 'decline_subscription'
-                event_plus['created_at'] = dt.fromisoformat(el['unsubscribed_at'])
+                event_plus['created_at'] = dt.fromisoformat(el['unsubscribed_at']) + timedelta(hours=3)
                 items.append(event_plus)
 
         
@@ -132,7 +147,8 @@ def get_kosher_subs_events(
 
 def main():
     request_headers, session_cookies = get_kosher_auth_data()
-    get_kosher_subs_events(request_headers, session_cookies)
+    load_kosher_clients(request_headers, session_cookies)
+    get_kosher_subs_events()
 
 if __name__ == '__main__':
     main()
